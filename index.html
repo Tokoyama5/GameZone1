@@ -1,0 +1,2172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="GameZone: free neon arcade games including Snake, Hit the Mole, Cube Tower and Hextris." />
+<title>GameZone | Play. Explore. Repeat.</title>
+<style>
+:root {
+  --bg-0: #05050d;
+  --bg-1: #0b0b1a;
+  --bg-2: #12122a;
+  --panel: rgba(16, 16, 36, 0.8);
+  --line: rgba(0, 240, 255, 0.18);
+  --line-strong: rgba(0, 240, 255, 0.55);
+  --text: #eef6ff;
+  --text-muted: #aab6cc;
+  --cyan-300: #7ff7ff;
+  --cyan-500: #00f0ff;
+  --cyan-700: #00a6b8;
+  --purple-300: #cfa6ff;
+  --purple-500: #a855f7;
+  --purple-700: #7c3aed;
+  --pink-300: #ff9ed0;
+  --pink-500: #ff3ea5;
+  --pink-700: #c2187a;
+  --green-500: #3dffa0;
+  --amber-500: #ffd166;
+  --red-500: #ff4d6d;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text);
+  background-color: var(--bg-0);
+  background-image:
+    radial-gradient(ellipse at top, rgba(0, 240, 255, 0.1), transparent 55%),
+    radial-gradient(ellipse at 90% 20%, rgba(168, 85, 247, 0.12), transparent 50%);
+  background-repeat: no-repeat;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { margin: 0; line-height: 1.2; font-weight: 800; }
+p { margin: 0; }
+button, input { font: inherit; color: inherit; }
+img { display: block; max-width: 100%; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+:focus-visible { outline: 2px solid var(--cyan-500); outline-offset: 3px; }
+
+.view { animation: fade-up 0.35s var(--ease); }
+.game-screen { animation: fade-in 0.3s ease-out; }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 62, 165, 0.6); }
+  50% { box-shadow: 0 0 0 6px rgba(255, 62, 165, 0); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Header and navigation */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 12px 24px;
+  background: rgba(5, 5, 13, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.logo {
+  padding: 4px 0;
+  background: none;
+  border: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--cyan-500);
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+  cursor: pointer;
+}
+.logo span { color: var(--pink-500); text-shadow: 0 0 12px rgba(255, 62, 165, 0.5); }
+.site-nav { display: flex; flex-wrap: wrap; gap: 4px; }
+.nav-btn {
+  padding: 8px 14px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: color 0.2s, background-color 0.2s, border-color 0.2s;
+}
+.nav-btn:hover { color: var(--cyan-300); }
+.nav-btn.is-active {
+  color: var(--cyan-500);
+  border-color: var(--line-strong);
+  background: rgba(0, 240, 255, 0.08);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.15s var(--ease), box-shadow 0.25s, border-color 0.25s, background-color 0.25s;
+}
+.btn:hover { border-color: var(--line-strong); box-shadow: 0 0 18px rgba(0, 240, 255, 0.25); }
+.btn:active { transform: scale(0.97); }
+.btn.primary {
+  background: linear-gradient(135deg, var(--cyan-500), var(--purple-500));
+  border-color: transparent;
+  color: #05050d;
+}
+.btn.primary:hover { box-shadow: 0 0 22px rgba(0, 240, 255, 0.4), 0 0 14px rgba(168, 85, 247, 0.35); }
+.btn.ghost { background: transparent; }
+.btn.small { min-height: 40px; padding: 8px 14px; font-size: 0.9rem; }
+.btn.wide { width: 100%; }
+
+/* Home: hero */
+.hero {
+  padding: 72px 16px 48px;
+  text-align: center;
+}
+.eyebrow {
+  margin-bottom: 16px;
+  color: var(--cyan-300);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.hero h1 {
+  font-size: clamp(2.25rem, 8vw, 4.75rem);
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  background: linear-gradient(90deg, var(--cyan-500), var(--purple-300), var(--pink-500));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 18px rgba(0, 240, 255, 0.25));
+}
+.hero-actions { margin-top: 32px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 62, 165, 0.5);
+  background: rgba(255, 62, 165, 0.08);
+  color: var(--pink-300);
+  font-size: 0.95rem;
+}
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pink-500);
+  animation: pulse 1.8s infinite;
+}
+
+/* Home: sections */
+.section {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px 16px 56px;
+  scroll-margin-top: 80px;
+}
+.section-title {
+  font-size: 1.75rem;
+  margin-bottom: 24px;
+  display: inline-block;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--cyan-500);
+  text-shadow: 0 0 14px rgba(0, 240, 255, 0.35);
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.search-input {
+  width: min(100%, 340px);
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.search-input::placeholder { color: var(--text-muted); }
+.search-input:focus {
+  outline: none;
+  border-color: var(--cyan-500);
+  box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.15);
+}
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 8px 16px;
+  min-height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 0.2s;
+}
+.chip:hover { color: var(--cyan-300); border-color: var(--line-strong); }
+.chip.is-active { background: var(--cyan-500); border-color: var(--cyan-500); color: #05050d; }
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 24px;
+}
+.game-card {
+  --accent: var(--cyan-500);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  border-radius: var(--radius, 16px);
+  border: 1px solid var(--line);
+  background: linear-gradient(160deg, rgba(22, 22, 48, 0.95), rgba(10, 10, 24, 0.95));
+  transition: transform 0.25s var(--ease), box-shadow 0.25s, border-color 0.25s;
+}
+.game-card[data-accent="pink"] { --accent: var(--pink-500); }
+.game-card[data-accent="purple"] { --accent: var(--purple-300); }
+.game-card[data-accent="green"] { --accent: var(--green-500); }
+.game-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 24px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.card-icon {
+  width: 64px;
+  height: 64px;
+  color: var(--accent);
+  filter: drop-shadow(0 0 8px var(--accent));
+}
+.card-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.game-card h3 { font-size: 1.3rem; }
+.game-card p { color: var(--text-muted); font-size: 0.95rem; flex: 1; }
+.card-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--cyan-300);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.game-card .btn { margin-top: 8px; }
+.empty-state { margin-top: 24px; text-align: center; color: var(--text-muted); }
+
+.about-card {
+  max-width: 760px;
+  padding: 32px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.about-card strong { color: var(--text); }
+
+/* Footer */
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: 40px 24px 24px;
+  background: var(--bg-1);
+}
+.footer-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 32px;
+}
+.footer-logo { font-weight: 800; letter-spacing: 0.12em; color: var(--cyan-500); margin-bottom: 8px; }
+.footer-text { color: var(--text-muted); font-size: 0.95rem; }
+.footer-heading { font-weight: 600; margin-bottom: 12px; color: var(--text); }
+.footer-links { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.text-link {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.text-link:hover { color: var(--cyan-300); text-decoration: underline; }
+.footer-social { display: flex; gap: 12px; flex-wrap: wrap; }
+.footer-social a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+.footer-social a:hover { color: var(--pink-300); }
+.copyright {
+  max-width: 1120px;
+  margin: 32px auto 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* Developer page */
+.dev-page {
+  min-height: calc(100vh - 160px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+}
+.dev-card {
+  width: min(100%, 520px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 32px;
+  text-align: center;
+  border-radius: 24px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: 0 0 40px rgba(0, 240, 255, 0.08);
+}
+.avatar-ring {
+  width: min(220px, 60vw);
+  aspect-ratio: 1;
+  padding: 5px;
+  border-radius: 50%;
+  background: conic-gradient(var(--cyan-500), var(--purple-500), var(--pink-500), var(--cyan-500));
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.45), 0 0 48px rgba(255, 62, 165, 0.25);
+  transition: transform 0.4s var(--ease), box-shadow 0.4s;
+}
+.avatar-ring:hover {
+  transform: scale(1.04);
+  box-shadow: 0 0 32px rgba(0, 240, 255, 0.6), 0 0 56px rgba(255, 62, 165, 0.35);
+}
+.avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--bg-0);
+}
+.dev-role { color: var(--cyan-300); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.85rem; }
+.dev-intro { color: var(--text-muted); max-width: 420px; }
+.social-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 8px; }
+.social-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+  touch-action: manipulation;
+  transition: transform 0.2s var(--ease), box-shadow 0.25s, border-color 0.25s;
+}
+.social-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.social-btn.x svg { fill: currentColor; stroke: none; }
+.social-btn:hover { transform: translateY(-2px); }
+.social-btn.instagram:hover { border-color: var(--pink-500); box-shadow: 0 0 20px rgba(255, 62, 165, 0.4); color: var(--pink-300); }
+.social-btn.x:hover { border-color: var(--cyan-500); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); color: var(--cyan-300); }
+.dev-card .btn { margin-top: 8px; }
+
+/* Game screens */
+.game-screen {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px 16px 40px;
+  user-select: none;
+  -webkit-user-select: none;
+  overscroll-behavior: contain;
+}
+.game-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.game-title { font-size: 1.6rem; text-shadow: 0 0 14px rgba(0, 240, 255, 0.35); }
+.diff-badge {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  color: var(--cyan-300);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.hud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+.hud-stat {
+  min-width: 96px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  text-align: center;
+}
+.hud-label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.hud-stat strong { font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+.hud-actions { display: flex; gap: 8px; }
+.game-hint { margin-top: 16px; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  touch-action: none;
+}
+.stage canvas,
+.stage-board {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: #0a0a18;
+  box-shadow: 0 0 32px rgba(0, 240, 255, 0.12);
+  touch-action: none;
+}
+.stage-cube { max-width: 380px; }
+.stage-cube canvas { aspect-ratio: 4 / 5; }
+.stage-hex { max-width: 460px; }
+.stage-mole { touch-action: manipulation; }
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(5, 5, 13, 0.82);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: fade-in 0.25s ease-out;
+}
+.overlay-card {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-2);
+  text-align: center;
+  box-shadow: 0 0 32px rgba(0, 240, 255, 0.15);
+}
+.overlay-card h3 { font-size: 1.5rem; color: var(--cyan-300); }
+.overlay-text { color: var(--text-muted); }
+.diff-section { display: flex; flex-direction: column; gap: 8px; }
+.diff-label { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+.diff-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.diff-btn {
+  min-height: 44px;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 0.2s;
+}
+.diff-btn:hover { border-color: var(--line-strong); }
+.diff-btn.is-selected {
+  border-color: var(--cyan-500);
+  background: rgba(0, 240, 255, 0.15);
+  color: var(--cyan-300);
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.25);
+}
+.diff-desc { min-height: 2.8em; color: var(--text-muted); font-size: 0.9rem; }
+
+/* Touch controls */
+.pad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  grid-template-rows: repeat(3, 72px);
+  gap: 8px;
+  justify-content: center;
+  margin-top: 16px;
+}
+.pad-row { display: flex; justify-content: center; gap: 16px; margin-top: 16px; }
+.pad-btn {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  border: 1px solid var(--line-strong);
+  background: rgba(0, 240, 255, 0.06);
+  color: var(--cyan-300);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.12s, transform 0.1s, box-shadow 0.2s;
+}
+.pad-btn::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border-top: 3px solid currentColor;
+  border-left: 3px solid currentColor;
+  transform: rotate(var(--rot));
+}
+.pad-btn:active { background: rgba(0, 240, 255, 0.22); transform: scale(0.94); box-shadow: 0 0 16px rgba(0, 240, 255, 0.35); }
+.pad-up { grid-column: 2; grid-row: 1; --rot: 45deg; }
+.pad-left { grid-column: 1; grid-row: 2; --rot: -45deg; }
+.pad-right { grid-column: 3; grid-row: 2; --rot: 135deg; }
+.pad-down { grid-column: 2; grid-row: 3; --rot: 225deg; }
+.pad-row .pad-btn.pad-left, .pad-row .pad-btn.pad-right { grid-column: auto; grid-row: auto; }
+.drop-btn { min-width: 200px; min-height: 64px; font-size: 1.1rem; }
+
+/* Hit the Mole */
+.mole-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: #0a0a18;
+  box-shadow: 0 0 32px rgba(0, 240, 255, 0.12);
+}
+.hole {
+  position: relative;
+  aspect-ratio: 1;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 240, 255, 0.25);
+  background: radial-gradient(circle at 50% 35%, #1a1a38, #05050d 75%);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.mole {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 6%;
+  height: 58%;
+  border-radius: 50% 50% 40% 40%;
+  background: radial-gradient(circle at 50% 30%, var(--pink-300), var(--pink-500) 60%, var(--pink-700));
+  box-shadow: 0 0 16px rgba(255, 62, 165, 0.6);
+  transform: translateY(130%);
+  transition: transform 0.12s ease-out, opacity 0.15s;
+  pointer-events: none;
+}
+.hole.is-up .mole { transform: translateY(0); }
+.hole.is-hit .mole { transform: scale(0.4); opacity: 0; transition: transform 0.15s, opacity 0.15s; }
+
+/* Cube Tower and Hextris use the shared canvas stage */
+.hex-hint { margin-top: 12px; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .site-header { padding: 10px 14px; }
+  .nav-btn { padding: 6px 10px; font-size: 0.9rem; }
+  .hero { padding: 48px 16px 32px; }
+  .section { padding: 24px 16px 40px; }
+  .about-card { padding: 24px 20px; }
+  .hud-stat { min-width: 80px; padding: 6px 12px; }
+  .pad-btn { width: 64px; height: 64px; }
+  .pad-grid { grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(3, 64px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+</style>
+  <meta property="og:image" content="https://bolt.new/static/og_default.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
+</head>
+<body>
+
+<header class="site-header">
+  <button type="button" class="logo" data-nav="home" aria-label="GameZone home">GAME<span>ZONE</span></button>
+  <nav class="site-nav" aria-label="Main navigation">
+    <button type="button" class="nav-btn" data-nav="home">Home</button>
+    <button type="button" class="nav-btn" data-nav="games">Games</button>
+    <button type="button" class="nav-btn" data-nav="developer">Developer</button>
+    <button type="button" class="nav-btn" data-nav="about">About</button>
+  </nav>
+</header>
+
+<main>
+  <!-- Home view -->
+  <div id="view-home" class="view" data-view="home">
+    <section class="hero">
+      <p class="eyebrow">Neon arcade</p>
+      <h1>PLAY. EXPLORE. REPEAT.</h1>
+      <div class="hero-actions">
+        <button type="button" class="btn primary" data-nav="games">Explore games</button>
+      </div>
+      <p class="notice"><span class="pulse-dot" aria-hidden="true"></span>GameZone is under development. More games coming soon!</p>
+    </section>
+
+    <section id="games" class="section">
+      <h2 class="section-title">Games</h2>
+      <div class="toolbar">
+        <label class="visually-hidden" for="game-search">Search games</label>
+        <input id="game-search" class="search-input" type="search" placeholder="Search games..." autocomplete="off" />
+        <div class="chips" role="group" aria-label="Filter games by category">
+          <button type="button" class="chip is-active" data-filter="all" aria-pressed="true">All</button>
+          <button type="button" class="chip" data-filter="arcade" aria-pressed="false">Arcade</button>
+          <button type="button" class="chip" data-filter="reflex" aria-pressed="false">Reflex</button>
+          <button type="button" class="chip" data-filter="puzzle" aria-pressed="false">Puzzle</button>
+        </div>
+      </div>
+
+      <div class="game-grid">
+        <article class="game-card" data-category="arcade" data-accent="cyan">
+          <div class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64"><polyline points="8,48 20,48 20,34 36,34 36,20 52,20"/><circle cx="52" cy="12" r="4"/></svg>
+          </div>
+          <h3>Snake</h3>
+          <p>Guide the glowing serpent, eat the food and grow longer without crashing into yourself.</p>
+          <div class="card-tags"><span class="tag">Arcade</span><span class="tag">Keyboard and touch</span></div>
+          <button type="button" class="btn primary" data-play="snake" aria-label="Play Snake">Play</button>
+        </article>
+
+        <article class="game-card" data-category="reflex" data-accent="pink">
+          <div class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64"><ellipse cx="32" cy="48" rx="22" ry="7"/><path d="M22 46 V34 a10 10 0 0 1 20 0 V46"/></svg>
+          </div>
+          <h3>Hit the Mole</h3>
+          <p>Tap the moles as they pop out of the holes. You have 30 seconds to score as much as you can.</p>
+          <div class="card-tags"><span class="tag">Reflex</span><span class="tag">Timed</span></div>
+          <button type="button" class="btn primary" data-play="mole" aria-label="Play Hit the Mole">Play</button>
+        </article>
+
+        <article class="game-card" data-category="arcade" data-accent="purple">
+          <div class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64"><rect x="10" y="48" width="44" height="8" rx="2"/><rect x="16" y="36" width="32" height="8" rx="2"/><rect x="24" y="24" width="16" height="8" rx="2"/></svg>
+          </div>
+          <h3>Cube Tower</h3>
+          <p>Drop the swinging blocks at exactly the right moment to build the tallest tower you can.</p>
+          <div class="card-tags"><span class="tag">Arcade</span><span class="tag">One-tap</span></div>
+          <button type="button" class="btn primary" data-play="cube" aria-label="Play Cube Tower">Play</button>
+        </article>
+
+        <article class="game-card" data-category="puzzle" data-accent="green">
+          <div class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64"><polygon points="32,6 54,19 54,45 32,58 10,45 10,19"/><polygon points="32,20 43,26.5 43,39.5 32,46 21,39.5 21,26.5"/></svg>
+          </div>
+          <h3>Hextris</h3>
+          <p>Rotate the hexagon ring and line up three or more matching colors to clear them before the core overloads.</p>
+          <div class="card-tags"><span class="tag">Puzzle</span><span class="tag">Rotate</span></div>
+          <button type="button" class="btn primary" data-play="hextris" aria-label="Play Hextris">Play</button>
+        </article>
+      </div>
+      <p id="empty-state" class="empty-state" hidden>No games match your search.</p>
+    </section>
+
+    <section id="about" class="section">
+      <h2 class="section-title">About</h2>
+      <div class="about-card">
+        <p><strong>GameZone</strong> is a free collection of neon-styled arcade games that run right in your browser. Pick a difficulty, jump in, and play on your phone, tablet or computer.</p>
+        <p>Every game is built from scratch with plain HTML, CSS and JavaScript, with touch controls designed for small screens. Your best scores and difficulty choices are saved on your device.</p>
+        <p>New games are on the way. Check back soon to see what comes next.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Developer view -->
+  <div id="view-developer" class="view dev-page" data-view="developer" hidden>
+    <div class="dev-card">
+      <div class="avatar-ring">
+        <img class="avatar" src="avatar.jpg" alt="Profile photo of Tokoyama" width="220" height="220" />
+      </div>
+      <h1>Tokoyama</h1>
+      <p class="dev-role">Creator of GameZone</p>
+      <p class="dev-intro">Hi! I'm Tokoyama, the creator of GameZone. I enjoy gaming, programming, and building creative digital experiences.</p>
+      <div class="social-links">
+        <a class="social-btn instagram" href="https://www.instagram.com/i.toko_67?psln=Nm8wNHBzN2cxcG5r" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor"/></svg>
+          <span>Instagram</span>
+        </a>
+        <a class="social-btn x" href="https://x.com/ui_fathi" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          <span>Twitter / X</span>
+        </a>
+      </div>
+      <button type="button" class="btn ghost" data-nav="home">Back to Home</button>
+    </div>
+  </div>
+
+  <!-- Game view: one screen per game, only one visible at a time -->
+  <div id="view-game" class="view" data-view="game" hidden>
+
+    <section id="screen-snake" class="game-screen" data-game-screen="snake" hidden aria-labelledby="title-snake">
+      <div class="game-topbar">
+        <button type="button" class="btn ghost small" data-back>&larr; Back</button>
+        <h2 id="title-snake" class="game-title">Snake</h2>
+        <span class="diff-badge" data-diff-label>Normal</span>
+      </div>
+      <div class="hud">
+        <div class="hud-stat"><span class="hud-label">Score</span><strong data-score>0</strong></div>
+        <div class="hud-stat"><span class="hud-label">Best</span><strong data-best>0</strong></div>
+        <div class="hud-actions">
+          <button type="button" class="btn small" data-pause>Pause</button>
+          <button type="button" class="btn small" data-restart>Restart</button>
+        </div>
+      </div>
+      <div class="stage stage-square" data-stage>
+        <canvas data-canvas role="img" aria-label="Snake game board"></canvas>
+      </div>
+      <div class="pad-grid" aria-label="Movement controls">
+        <button type="button" class="pad-btn pad-up" data-dir="up" aria-label="Move up"></button>
+        <button type="button" class="pad-btn pad-left" data-dir="left" aria-label="Move left"></button>
+        <button type="button" class="pad-btn pad-right" data-dir="right" aria-label="Move right"></button>
+        <button type="button" class="pad-btn pad-down" data-dir="down" aria-label="Move down"></button>
+      </div>
+      <p class="game-hint">Arrow keys or W A S D to move. On touch screens, swipe the board or use the buttons.</p>
+    </section>
+
+    <section id="screen-mole" class="game-screen" data-game-screen="mole" hidden aria-labelledby="title-mole">
+      <div class="game-topbar">
+        <button type="button" class="btn ghost small" data-back>&larr; Back</button>
+        <h2 id="title-mole" class="game-title">Hit the Mole</h2>
+        <span class="diff-badge" data-diff-label>Normal</span>
+      </div>
+      <div class="hud">
+        <div class="hud-stat"><span class="hud-label">Score</span><strong data-score>0</strong></div>
+        <div class="hud-stat"><span class="hud-label">Best</span><strong data-best>0</strong></div>
+        <div class="hud-stat"><span class="hud-label">Time</span><strong data-time>30s</strong></div>
+        <div class="hud-actions">
+          <button type="button" class="btn small" data-pause>Pause</button>
+          <button type="button" class="btn small" data-restart>Restart</button>
+        </div>
+      </div>
+      <div class="stage stage-mole" data-stage>
+        <div class="mole-grid" data-grid></div>
+      </div>
+      <p class="game-hint">Tap or click a mole the moment it pops up. Each mole is worth points only once.</p>
+    </section>
+
+    <section id="screen-cube" class="game-screen" data-game-screen="cube" hidden aria-labelledby="title-cube">
+      <div class="game-topbar">
+        <button type="button" class="btn ghost small" data-back>&larr; Back</button>
+        <h2 id="title-cube" class="game-title">Cube Tower</h2>
+        <span class="diff-badge" data-diff-label>Normal</span>
+      </div>
+      <div class="hud">
+        <div class="hud-stat"><span class="hud-label">Height</span><strong data-score>0</strong></div>
+        <div class="hud-stat"><span class="hud-label">Best</span><strong data-best>0</strong></div>
+        <div class="hud-actions">
+          <button type="button" class="btn small" data-pause>Pause</button>
+          <button type="button" class="btn small" data-restart>Restart</button>
+        </div>
+      </div>
+      <div class="stage stage-cube" data-stage>
+        <canvas data-canvas role="img" aria-label="Cube Tower game area"></canvas>
+      </div>
+      <div class="pad-row">
+        <button type="button" class="btn primary drop-btn" data-drop>Drop block</button>
+      </div>
+      <p class="game-hint">Tap anywhere on the tower or press Space to drop the block. Land it perfectly for a bonus.</p>
+    </section>
+
+    <section id="screen-hextris" class="game-screen" data-game-screen="hextris" hidden aria-labelledby="title-hextris">
+      <div class="game-topbar">
+        <button type="button" class="btn ghost small" data-back>&larr; Back</button>
+        <h2 id="title-hextris" class="game-title">Hextris</h2>
+        <span class="diff-badge" data-diff-label>Normal</span>
+      </div>
+      <div class="hud">
+        <div class="hud-stat"><span class="hud-label">Score</span><strong data-score>0</strong></div>
+        <div class="hud-stat"><span class="hud-label">Best</span><strong data-best>0</strong></div>
+        <div class="hud-actions">
+          <button type="button" class="btn small" data-pause>Pause</button>
+          <button type="button" class="btn small" data-restart>Restart</button>
+        </div>
+      </div>
+      <div class="stage stage-hex" data-stage>
+        <canvas data-canvas role="img" aria-label="Hextris game board"></canvas>
+      </div>
+      <div class="pad-row">
+        <button type="button" class="pad-btn pad-left" data-rotate="-1" aria-label="Rotate left"></button>
+        <button type="button" class="pad-btn pad-right" data-rotate="1" aria-label="Rotate right"></button>
+      </div>
+      <p class="hex-hint">Left or A and Right or D rotate the ring. Swipe the board or tap its left or right side on touch screens.</p>
+    </section>
+  </div>
+</main>
+
+<footer class="site-footer" data-footer>
+  <div class="footer-inner">
+    <div>
+      <p class="footer-logo">GAMEZONE</p>
+      <p class="footer-text">Free neon arcade games, built with plain HTML, CSS and JavaScript.</p>
+    </div>
+    <div>
+      <p class="footer-heading">Navigate</p>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <button type="button" class="text-link" data-nav="home">Home</button>
+        <button type="button" class="text-link" data-nav="games">Games</button>
+        <button type="button" class="text-link" data-nav="developer">Developer</button>
+        <button type="button" class="text-link" data-nav="about">About</button>
+      </nav>
+    </div>
+    <div>
+      <p class="footer-heading">Developer</p>
+      <p class="footer-text">Created by Tokoyama</p>
+      <div class="footer-social">
+        <a href="https://www.instagram.com/i.toko_67?psln=Nm8wNHBzN2cxcG5r" target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a href="https://x.com/ui_fathi" target="_blank" rel="noopener noreferrer">Twitter / X</a>
+      </div>
+    </div>
+  </div>
+  <p class="copyright">&copy; 2026 GameZone. All rights reserved.</p>
+</footer>
+
+<script>
+(() => {
+  'use strict';
+
+  const DIFFICULTIES = {
+    easy: { label: 'Easy', desc: 'Slower gameplay with more time to react.' },
+    normal: { label: 'Normal', desc: 'Balanced speed and challenge. Recommended.' },
+    hard: { label: 'Hard', desc: 'Faster gameplay and a steeper difficulty curve.' },
+  };
+  const SWIPE_MIN = 24;
+
+  const storage = {
+    get(key) {
+      try {
+        return window.localStorage.getItem(key);
+      } catch (error) {
+        return null;
+      }
+    },
+    set(key, value) {
+      try {
+        window.localStorage.setItem(key, String(value));
+      } catch (error) {
+        // Storage is unavailable (private mode or blocked); the game still works without saving.
+      }
+    },
+  };
+
+  const loadDifficulty = (gameId) => {
+    const saved = storage.get(`gamezone.difficulty.${gameId}`);
+    return Object.hasOwn(DIFFICULTIES, saved) ? saved : 'normal';
+  };
+  const loadBest = (gameId) => {
+    const value = Math.floor(Number(storage.get(`gamezone.best.${gameId}`)));
+    return Number.isFinite(value) && value > 0 ? value : 0;
+  };
+  const saveBest = (gameId, value) => storage.set(`gamezone.best.${gameId}`, value);
+
+  const randomInt = (max) => Math.floor(Math.random() * max);
+  const mod = (n, m) => ((n % m) + m) % m;
+  const isTypingTarget = (el) =>
+    el instanceof HTMLElement && (el.isContentEditable || el.matches('input, textarea, select'));
+
+  function runFrameLoop(update, signal) {
+    let last = 0;
+    let frameId = 0;
+    const tick = (now) => {
+      const dt = last ? Math.min((now - last) / 1000, 0.1) : 0;
+      last = now;
+      update(dt);
+      frameId = requestAnimationFrame(tick);
+    };
+    frameId = requestAnimationFrame(tick);
+    signal.addEventListener('abort', () => cancelAnimationFrame(frameId), { once: true });
+  }
+
+  function fitCanvas(canvas, ctx) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { width, height };
+  }
+
+  const OVERLAY_TEMPLATE = `
+    <div class="overlay" data-overlay hidden>
+      <div class="overlay-card">
+        <h3 data-overlay-title></h3>
+        <p class="overlay-text" data-overlay-text></p>
+        <div class="diff-section" data-diff-section>
+          <p class="diff-label">Difficulty</p>
+          <div class="diff-group">
+            <button type="button" class="diff-btn" data-diff="easy" aria-pressed="false">Easy</button>
+            <button type="button" class="diff-btn" data-diff="normal" aria-pressed="false">Normal</button>
+            <button type="button" class="diff-btn" data-diff="hard" aria-pressed="false">Hard</button>
+          </div>
+          <p class="diff-desc" data-diff-desc></p>
+        </div>
+        <button type="button" class="btn primary wide" data-primary></button>
+      </div>
+    </div>`;
+
+  function createOverlay(screen, gameId, signal) {
+    const overlay = screen.querySelector('[data-overlay]');
+    const titleEl = overlay.querySelector('[data-overlay-title]');
+    const textEl = overlay.querySelector('[data-overlay-text]');
+    const diffSection = overlay.querySelector('[data-diff-section]');
+    const diffDesc = overlay.querySelector('[data-diff-desc]');
+    const primaryBtn = overlay.querySelector('[data-primary]');
+    const diffBtns = Array.from(overlay.querySelectorAll('[data-diff]'));
+    const badge = screen.querySelector('[data-diff-label]');
+    let difficulty = loadDifficulty(gameId);
+    let primaryAction = null;
+
+    const renderDifficulty = () => {
+      diffBtns.forEach((btn) => {
+        const active = btn.dataset.diff === difficulty;
+        btn.classList.toggle('is-selected', active);
+        btn.setAttribute('aria-pressed', String(active));
+      });
+      diffDesc.textContent = DIFFICULTIES[difficulty].desc;
+      badge.textContent = DIFFICULTIES[difficulty].label;
+    };
+
+    diffBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        difficulty = btn.dataset.diff;
+        storage.set(`gamezone.difficulty.${gameId}`, difficulty);
+        renderDifficulty();
+      }, { signal });
+    });
+    primaryBtn.addEventListener('click', () => primaryAction?.(), { signal });
+
+    return {
+      difficulty: () => difficulty,
+      show({ title, text = '', primaryLabel, showDifficulty, action }) {
+        titleEl.textContent = title;
+        textEl.textContent = text;
+        textEl.hidden = !text;
+        primaryBtn.textContent = primaryLabel;
+        diffSection.hidden = !showDifficulty;
+        primaryAction = action;
+        renderDifficulty();
+        overlay.hidden = false;
+      },
+      hide() {
+        primaryAction = null;
+        overlay.hidden = true;
+      },
+    };
+  }
+
+  /* ---------- Snake ---------- */
+
+  const SNAKE_COLS = 20;
+  const SNAKE_ROWS = 20;
+  const SNAKE_START = { x: 5, y: 10 };
+  const SNAKE_LEVELS = {
+    easy: { start: 190, min: 110, speedUp: 3, wrap: true, obstacles: 0 },
+    normal: { start: 140, min: 70, speedUp: 5, wrap: false, obstacles: 0 },
+    hard: { start: 100, min: 50, speedUp: 6, wrap: false, obstacles: 12 },
+  };
+  const SNAKE_KEYS = {
+    ArrowUp: [0, -1], KeyW: [0, -1],
+    ArrowDown: [0, 1], KeyS: [0, 1],
+    ArrowLeft: [-1, 0], KeyA: [-1, 0],
+    ArrowRight: [1, 0], KeyD: [1, 0],
+  };
+  const DIRECTION_BY_NAME = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+
+  function createSnakeGame(screen, signal) {
+    const canvas = screen.querySelector('[data-canvas]');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = screen.querySelector('[data-score]');
+    const bestEl = screen.querySelector('[data-best]');
+    const overlay = createOverlay(screen, 'snake', signal);
+    let best = loadBest('snake');
+    let level = SNAKE_LEVELS.normal;
+    let phase = 'idle';
+    let snake = [];
+    let direction = { x: 1, y: 0 };
+    let queue = [];
+    let walls = [];
+    let food = { x: 0, y: 0 };
+    let score = 0;
+    let stepMs = 0;
+    let accumulator = 0;
+    let cell = 0;
+    let swipeStart = null;
+
+    const cellId = (c) => `${c.x},${c.y}`;
+
+    function updateHud() {
+      scoreEl.textContent = String(score);
+      bestEl.textContent = String(Math.max(best, score));
+    }
+
+    function placeFood() {
+      const taken = new Set([...snake, ...walls].map(cellId));
+      let spot;
+      do {
+        spot = { x: randomInt(SNAKE_COLS), y: randomInt(SNAKE_ROWS) };
+      } while (taken.has(cellId(spot)));
+      return spot;
+    }
+
+    function placeWalls(count) {
+      const taken = new Set(snake.map(cellId));
+      const result = [];
+      let attempts = 0;
+      while (result.length < count && attempts < 1000) {
+        attempts += 1;
+        const spot = { x: randomInt(SNAKE_COLS), y: randomInt(SNAKE_ROWS) };
+        const nearStart = Math.abs(spot.x - SNAKE_START.x) + Math.abs(spot.y - SNAKE_START.y) <= 5;
+        if (nearStart || taken.has(cellId(spot))) continue;
+        taken.add(cellId(spot));
+        result.push(spot);
+      }
+      return result;
+    }
+
+    function resetBoard() {
+      snake = [{ ...SNAKE_START }, { x: SNAKE_START.x - 1, y: SNAKE_START.y }, { x: SNAKE_START.x - 2, y: SNAKE_START.y }];
+      direction = { x: 1, y: 0 };
+      queue = [];
+      score = 0;
+      stepMs = level.start;
+      accumulator = 0;
+      walls = placeWalls(level.obstacles);
+      food = placeFood();
+      updateHud();
+    }
+
+    function endGame() {
+      phase = 'over';
+      const newBest = score > best;
+      if (newBest) {
+        best = score;
+        saveBest('snake', best);
+      }
+      updateHud();
+      overlay.show({
+        title: 'Game over',
+        text: `Final score: ${score}${newBest ? ' - New best!' : ''}`,
+        primaryLabel: 'Play again',
+        showDifficulty: true,
+        action: () => beginGame(overlay.difficulty()),
+      });
+    }
+
+    function step() {
+      if (queue.length) direction = queue.shift();
+      const head = snake[0];
+      let x = head.x + direction.x;
+      let y = head.y + direction.y;
+      if (level.wrap) {
+        x = mod(x, SNAKE_COLS);
+        y = mod(y, SNAKE_ROWS);
+      } else if (x < 0 || y < 0 || x >= SNAKE_COLS || y >= SNAKE_ROWS) {
+        endGame();
+        return;
+      }
+      const eats = x === food.x && y === food.y;
+      const solid = eats ? snake : snake.slice(0, -1);
+      if (solid.some((s) => s.x === x && s.y === y) || walls.some((w) => w.x === x && w.y === y)) {
+        endGame();
+        return;
+      }
+      snake.unshift({ x, y });
+      if (eats) {
+        score += 1;
+        stepMs = Math.max(level.min, stepMs - level.speedUp);
+        food = placeFood();
+        updateHud();
+      } else {
+        snake.pop();
+      }
+    }
+
+    function turn(dx, dy) {
+      if (phase !== 'playing') return;
+      const last = queue.length ? queue[queue.length - 1] : direction;
+      if (queue.length >= 2) return;
+      if ((dx === last.x && dy === last.y) || (dx === -last.x && dy === -last.y)) return;
+      queue.push({ x: dx, y: dy });
+    }
+
+    function render() {
+      const size = cell * SNAKE_COLS;
+      ctx.fillStyle = '#0a0a18';
+      ctx.fillRect(0, 0, size, size);
+
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.06)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 1; i < SNAKE_COLS; i += 1) {
+        const p = i * cell;
+        ctx.moveTo(p, 0);
+        ctx.lineTo(p, size);
+        ctx.moveTo(0, p);
+        ctx.lineTo(size, p);
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(168, 85, 247, 0.6)';
+      walls.forEach((w) => ctx.fillRect(w.x * cell + 1, w.y * cell + 1, cell - 2, cell - 2));
+
+      ctx.shadowColor = '#ff3ea5';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#ff3ea5';
+      ctx.beginPath();
+      ctx.arc((food.x + 0.5) * cell, (food.y + 0.5) * cell, cell * 0.36, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.shadowColor = '#00f0ff';
+      snake.forEach((seg, i) => {
+        if (i === 0) {
+          ctx.shadowBlur = 14;
+          ctx.fillStyle = '#7ff7ff';
+        } else {
+          ctx.shadowBlur = 0;
+          const t = i / snake.length;
+          ctx.fillStyle = `hsl(${190 - t * 30}, 100%, ${62 - t * 20}%)`;
+        }
+        ctx.fillRect(seg.x * cell + 1, seg.y * cell + 1, cell - 2, cell - 2);
+      });
+      ctx.shadowBlur = 0;
+    }
+
+    function resize() {
+      const { width } = fitCanvas(canvas, ctx);
+      cell = width / SNAKE_COLS;
+      render();
+    }
+
+    function beginGame(difficulty) {
+      level = SNAKE_LEVELS[difficulty];
+      resetBoard();
+      phase = 'playing';
+      overlay.hide();
+    }
+
+    function promptStart() {
+      level = SNAKE_LEVELS[overlay.difficulty()];
+      resetBoard();
+      phase = 'idle';
+      overlay.show({
+        title: 'Snake',
+        text: 'Eat food, grow longer, and avoid walls and your own tail.',
+        primaryLabel: 'Start',
+        showDifficulty: true,
+        action: () => beginGame(overlay.difficulty()),
+      });
+    }
+
+    function pause() {
+      if (phase !== 'playing') return;
+      phase = 'paused';
+      overlay.show({ title: 'Paused', primaryLabel: 'Resume', showDifficulty: false, action: resume });
+    }
+
+    function resume() {
+      if (phase !== 'paused') return;
+      phase = 'playing';
+      overlay.hide();
+    }
+
+    function togglePause() {
+      if (phase === 'playing') pause();
+      else resume();
+    }
+
+    function update(dt) {
+      if (phase === 'playing') {
+        accumulator += dt * 1000;
+        while (accumulator >= stepMs && phase === 'playing') {
+          accumulator -= stepMs;
+          step();
+        }
+      }
+      render();
+    }
+
+    window.addEventListener('keydown', (event) => {
+      if (isTypingTarget(event.target)) return;
+      if (event.code === 'KeyP') {
+        togglePause();
+        return;
+      }
+      const move = SNAKE_KEYS[event.code];
+      if (!move) return;
+      event.preventDefault();
+      turn(move[0], move[1]);
+    }, { signal });
+
+    screen.querySelectorAll('[data-dir]').forEach((button) => {
+      button.addEventListener('pointerdown', (event) => {
+        event.preventDefault();
+        const [dx, dy] = DIRECTION_BY_NAME[button.dataset.dir];
+        turn(dx, dy);
+      }, { signal });
+    });
+
+    canvas.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      swipeStart = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    }, { signal });
+    canvas.addEventListener('pointermove', (event) => {
+      if (!swipeStart || swipeStart.id !== event.pointerId) return;
+      const dx = event.clientX - swipeStart.x;
+      const dy = event.clientY - swipeStart.y;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_MIN) return;
+      swipeStart = null;
+      if (Math.abs(dx) > Math.abs(dy)) turn(Math.sign(dx), 0);
+      else turn(0, Math.sign(dy));
+    }, { signal });
+    const endSwipe = () => { swipeStart = null; };
+    canvas.addEventListener('pointerup', endSwipe, { signal });
+    canvas.addEventListener('pointercancel', endSwipe, { signal });
+
+    screen.querySelector('[data-pause]').addEventListener('click', togglePause, { signal });
+    screen.querySelector('[data-restart]').addEventListener('click', promptStart, { signal });
+    window.addEventListener('resize', resize, { signal });
+
+    promptStart();
+    resize();
+    runFrameLoop(update, signal);
+  }
+
+  /* ---------- Hit the Mole ---------- */
+
+  const MOLE_HOLES = 9;
+  const MOLE_ROUND_SECONDS = 30;
+  const MOLE_POINTS = 10;
+  const MOLE_LEVELS = {
+    easy: { up: 1300, upMin: 800, spawn: 950, spawnMin: 500, ramp: 15, twoAt: Infinity },
+    normal: { up: 1000, upMin: 500, spawn: 700, spawnMin: 320, ramp: 25, twoAt: 20 },
+    hard: { up: 800, upMin: 320, spawn: 500, spawnMin: 220, ramp: 30, twoAt: 8 },
+  };
+
+  function createMoleGame(screen, signal) {
+    const grid = screen.querySelector('[data-grid]');
+    const timeEl = screen.querySelector('[data-time]');
+    const scoreEl = screen.querySelector('[data-score]');
+    const bestEl = screen.querySelector('[data-best]');
+    const overlay = createOverlay(screen, 'mole', signal);
+    let best = loadBest('mole');
+    let level = MOLE_LEVELS.normal;
+    let phase = 'idle';
+    let timeLeft = MOLE_ROUND_SECONDS;
+    let shownSeconds = -1;
+    let hits = 0;
+    let spawnIn = 0;
+    let lastHole = -1;
+
+    grid.innerHTML = Array.from({ length: MOLE_HOLES }, (_, i) =>
+      `<button type="button" class="hole" aria-label="Hole ${i + 1}"><span class="mole" aria-hidden="true"></span></button>`
+    ).join('');
+    const holes = Array.from(grid.querySelectorAll('.hole'));
+    const moles = holes.map(() => ({ up: false, hit: false, remaining: 0 }));
+
+    const score = () => hits * MOLE_POINTS;
+
+    function updateHud() {
+      scoreEl.textContent = String(score());
+      bestEl.textContent = String(Math.max(best, score()));
+    }
+
+    function showTime() {
+      const seconds = Math.ceil(timeLeft);
+      if (seconds === shownSeconds) return;
+      shownSeconds = seconds;
+      timeEl.textContent = `${seconds}s`;
+    }
+
+    function paintHole(i) {
+      holes[i].classList.toggle('is-up', moles[i].up);
+      holes[i].classList.toggle('is-hit', moles[i].hit);
+    }
+
+    function hideAll() {
+      moles.forEach((m, i) => {
+        m.up = false;
+        m.hit = false;
+        paintHole(i);
+      });
+    }
+
+    function spawnMole() {
+      const active = moles.filter((m) => m.up).length;
+      if (active >= (hits >= level.twoAt ? 2 : 1)) return;
+      const candidates = moles.map((_, i) => i).filter((i) => !moles[i].up && i !== lastHole);
+      if (!candidates.length) return;
+      const i = candidates[randomInt(candidates.length)];
+      moles[i] = { up: true, hit: false, remaining: Math.max(level.upMin, level.up - hits * level.ramp) };
+      lastHole = i;
+      paintHole(i);
+    }
+
+    function whack(i) {
+      const m = moles[i];
+      if (phase !== 'playing' || !m.up || m.hit) return;
+      m.up = false;
+      m.hit = true;
+      hits += 1;
+      paintHole(i);
+      updateHud();
+    }
+
+    function endGame() {
+      phase = 'over';
+      hideAll();
+      timeLeft = 0;
+      showTime();
+      const newBest = score() > best;
+      if (newBest) {
+        best = score();
+        saveBest('mole', best);
+      }
+      updateHud();
+      overlay.show({
+        title: "Time's up!",
+        text: `Final score: ${score()}${newBest ? ' - New best!' : ''}`,
+        primaryLabel: 'Play again',
+        showDifficulty: true,
+        action: () => beginGame(overlay.difficulty()),
+      });
+    }
+
+    function beginGame(difficulty) {
+      level = MOLE_LEVELS[difficulty];
+      hits = 0;
+      timeLeft = MOLE_ROUND_SECONDS;
+      shownSeconds = -1;
+      spawnIn = 500;
+      lastHole = -1;
+      hideAll();
+      phase = 'playing';
+      overlay.hide();
+      updateHud();
+      showTime();
+    }
+
+    function promptStart() {
+      phase = 'idle';
+      hideAll();
+      hits = 0;
+      timeLeft = MOLE_ROUND_SECONDS;
+      shownSeconds = -1;
+      updateHud();
+      showTime();
+      overlay.show({
+        title: 'Hit the Mole',
+        text: `Tap the moles as they pop up. You have ${MOLE_ROUND_SECONDS} seconds.`,
+        primaryLabel: 'Start',
+        showDifficulty: true,
+        action: () => beginGame(overlay.difficulty()),
+      });
+    }
+
+    function pause() {
+      if (phase !== 'playing') return;
+      phase = 'paused';
+      overlay.show({ title: 'Paused', primaryLabel: 'Resume', showDifficulty: false, action: resume });
+    }
+
+    function resume() {
+      if (phase !== 'paused') return;
+      phase = 'playing';
+      overlay.hide();
+    }
+
+    function togglePause() {
+      if (phase === 'playing') pause();
+      else resume();
+    }
+
+    function update(dt) {
+      if (phase !== 'playing') return;
+      timeLeft = Math.max(0, timeLeft - dt);
+      showTime();
+      if (timeLeft === 0) {
+        endGame();
+        return;
+      }
+      moles.forEach((m, i) => {
+        if (!m.up) return;
+        m.remaining -= dt * 1000;
+        if (m.remaining <= 0) {
+          m.up = false;
+          paintHole(i);
+        }
+      });
+      spawnIn -= dt * 1000;
+      if (spawnIn <= 0) {
+        spawnMole();
+        spawnIn = Math.max(level.spawnMin, level.spawn - hits * level.ramp);
+      }
+    }
+
+    holes.forEach((hole, i) => {
+      hole.addEventListener('pointerdown', (event) => {
+        event.preventDefault();
+        whack(i);
+      }, { signal });
+      hole.addEventListener('click', (event) => {
+        if (event.detail === 0) whack(i);
+      }, { signal });
+    });
+
+    window.addEventListener('keydown', (event) => {
+      if (isTypingTarget(event.target)) return;
+      if (event.code === 'KeyP') togglePause();
+    }, { signal });
+
+    screen.querySelector('[data-pause]').addEventListener('click', togglePause, { signal });
+    screen.querySelector('[data-restart]').addEventListener('click', promptStart, { signal });
+
+    promptStart();
+    runFrameLoop(update, signal);
+  }
+
+  /* ---------- Cube Tower ---------- */
+
+  const CUBE_LEVELS = {
+    easy: { startWidth: 0.7, speed: 0.32, speedStep: 0.008, maxSpeed: 0.6, perfectTol: 0.018 },
+    normal: { startWidth: 0.6, speed: 0.42, speedStep: 0.012, maxSpeed: 0.85, perfectTol: 0.011 },
+    hard: { startWidth: 0.5, speed: 0.52, speedStep: 0.018, maxSpeed: 1.1, perfectTol: 0.006 },
+  };
+  const CUBE_MIN_OVERLAP = 0.004;
+  const CUBE_PALETTE = ['#00f0ff', '#4fd1ff', '#7f8cff', '#b65cff', '#e05cff', '#ff3ea5', '#ff6b8a', '#3dffa0'];
+  const CUBE_DEBRIS_MS = 1200;
+
+  function drawRect(ctx, x, y, w, h, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y + 1, w, h - 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+    ctx.fillRect(x, y + 1, w, 2);
+  }
+
+  function createCubeGame(screen, signal) {
+    const canvas = screen.querySelector('[data-canvas]');
+    const ctx = canvas.getContext('2d');
+    const stageEl = screen.querySelector('[data-stage]');
+    const scoreEl = screen.querySelector('[data-score]');
+    const bestEl = screen.querySelector('[data-best]');
+    const overlay = createOverlay(screen, 'cube', signal);
+    let best = loadBest('cube');
+    let level = CUBE_LEVELS.normal;
+    let phase = 'idle';
+    let size = { width: 0, height: 0 };
+    let stack = [];
+    let moving = null;
+    let debris = [];
+    let cameraY = 0;
+    let flash = { text: '', t: 0 };
+    let streak = 0;
+    let failTimer = 0;
+
+    function updateHud() {
+      scoreEl.textContent = String(stack.length - 1);
+      bestEl.textContent = String(Math.max(best, stack.length - 1));
+    }
+
+    function resetState() {
+      const width = level.startWidth;
+      stack = [{ x: (1 - width) / 2, w: width }];
+      moving = { x: 0, w: width, dir: 1 };
+      debris = [];
+      cameraY = 0;
+      streak = 0;
+      failTimer = 0;
+      flash = { text: '', t: 0 };
+      updateHud();
+    }
+
+    const blockHeight = () => Math.max(14, size.width * 0.075);
+    const speed = () => Math.min(level.maxSpeed, level.speed + (stack.length - 1) * level.speedStep);
+
+    function endGame() {
+      phase = 'over';
+      debris.push({ x: moving.x, w: moving.w, row: stack.length, t: 0 });
+      moving = null;
+      failTimer = 0.7;
+      const height = stack.length - 1;
+      if (height > best) {
+        best = height;
+        saveBest('cube', best);
+      }
+      updateHud();
+    }
+
+    function showGameOver() {
+      overlay.show({
+        title: 'Tower collapsed',
+        text: `Tower height: ${stack.length - 1}`,
+        primaryLabel: 'Play again',
+        showDifficulty: true,
+        action: () => beginGame(overlay.difficulty()),
+      });
+    }
+
+    function drop() {
+      if (phase !== 'playing') return;
+      const top = stack[stack.length - 1];
+      const row = stack.length;
+      const left = Math.max(top.x, moving.x);
+      const right = Math.min(top.x + top.w, moving.x + moving.w);
+      const overlap = right - left;
+      if (overlap < CUBE_MIN_OVERLAP) {
+        endGame();
+        return;
+      }
+      if (Math.abs(moving.x - top.x) <= level.perfectTol) {
+        stack.push({ x: top.x, w: top.w });
+        streak += 1;
+        flash = { text: streak > 1 ? `Perfect x${streak}` : 'Perfect!', t: 0.9 };
+      } else {
+        if (moving.x < left) debris.push({ x: moving.x, w: left - moving.x, row, t: 0 });
+        if (moving.x + moving.w > right) debris.push({ x: right, w: moving.x + moving.w - right, row, t: 0 });
+        stack.push({ x: left, w: overlap });
+        streak = 0;
+      }
+      moving = { x: 0, w: stack[stack.length - 1].w, dir: 1 };
+      updateHud();
+    }
+
+    function render() {
+      const { width: W, height: H } = size;
+      if (!W) return;
+      const bh = blockHeight();
+      const rowY = (r) => H - bh * 2 - r * bh + cameraY;
+
+      ctx.clearRect(0, 0, W, H);
+      const bg = ctx.createLinearGradient(0, 0, 0, H);
+      bg.addColorStop(0, '#0c0c20');
+      bg.addColorStop(1, '#070711');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.fillStyle = 'rgba(0, 240, 255, 0.2)';
+      ctx.fillRect(0, rowY(0) + bh, W, 2);
+
+      stack.forEach((block, r) => {
+        drawRect(ctx, block.x * W, rowY(r), block.w * W, bh, CUBE_PALETTE[r % CUBE_PALETTE.length]);
+      });
+
+      debris.forEach((piece) => {
+        ctx.globalAlpha = Math.max(0, 1 - piece.t / (CUBE_DEBRIS_MS / 1000));
+        const y = rowY(piece.row) + piece.t * piece.t * H * 1.4;
+        drawRect(ctx, piece.x * W, y, piece.w * W, bh, CUBE_PALETTE[piece.row % CUBE_PALETTE.length]);
+        ctx.globalAlpha = 1;
+      });
+
+      if (moving) {
+        const color = CUBE_PALETTE[stack.length % CUBE_PALETTE.length];
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 14;
+        drawRect(ctx, moving.x * W, rowY(stack.length), moving.w * W, bh, color);
+        ctx.shadowBlur = 0;
+      }
+
+      if (flash.t > 0) {
+        ctx.globalAlpha = Math.min(1, flash.t * 2);
+        ctx.fillStyle = '#ffd166';
+        ctx.font = '700 16px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(flash.text, W / 2, rowY(stack.length) - 12);
+        ctx.textAlign = 'left';
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    function update(dt) {
+      if (phase === 'playing' && moving) {
+        moving.x += moving.dir * speed() * dt;
+        if (moving.x < 0) {
+          moving.x = 0;
+          moving.dir = 1;
+        }
+        if (moving.x + moving.w > 1) {
+          moving.x = 1 - moving.w;
+          moving.dir = -1;
+        }
+      }
+      debris = debris.filter((piece) => {
+        piece.t += dt;
+        return piece.t < CUBE_DEBRIS_MS / 1000;
+      });
+      if (flash.t > 0) flash.t = Math.max(0, flash.t - dt);
+      if (phase === 'over' && failTimer > 0) {
+        failTimer -= dt;
+        if (failTimer <= 0) showGameOver();
+      }
+      const bh = blockHeight();
+      const topY = size.height * 0.3;
+      const target = Math.max(0, topY - (size.height - bh * 2) + stack.length * bh);
+      cameraY += (target - cameraY) * Math.min(1, dt * 6);
+      render();
+    }
+
+    function resize() {
+      size = fitCanvas(canvas, ctx);
+      render();
+    }
+
+    function beginGame(difficulty) {
+      level = CUBE_LEVELS[difficulty];
+      resetState();
+      phase = 'playing';
+      overlay.hide();
+    }
+
+    function promptStart() {
+      level = CUBE_LEVELS[overlay.difficulty()];
+      resetState();
+      phase = 'idle';
+      overlay.show({
+        title: 'Cube Tower',
+        text: 'Drop each block when it lines up with the tower below.',
+        primaryLabel: 'Start',
+        showDifficulty: true,
+        action: () => beginGame(overlay.difficulty()),
+      });
+    }
+
+    function pause() {
+      if (phase !== 'playing') return;
+      phase = 'paused';
+      overlay.show({ title: 'Paused', primaryLabel: 'Resume', showDifficulty: false, action: resume });
+    }
+
+    function resume() {
+      if (phase !== 'paused') return;
+      phase = 'playing';
+      overlay.hide();
+    }
+
+    function togglePause() {
+      if (phase === 'playing') pause();
+      else resume();
+    }
+
+    stageEl.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      drop();
+    }, { signal });
+    screen.querySelector('[data-drop]').addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      drop();
+    }, { signal });
+
+    window.addEventListener('keydown', (event) => {
+      if (isTypingTarget(event.target)) return;
+      if (event.code === 'Space') {
+        event.preventDefault();
+        if (!event.repeat) drop();
+      } else if (event.code === 'KeyP') {
+        togglePause();
+      }
+    }, { signal });
+
+    screen.querySelector('[data-pause]').addEventListener('click', togglePause, { signal });
+    screen.querySelector('[data-restart]').addEventListener('click', promptStart, { signal });
+    window.addEventListener('resize', resize, { signal });
+
+    promptStart();
+    resize();
+    runFrameLoop(update, signal);
+  }
+
+  /* ---------- Hextris ---------- */
+
+  const HEX_LANES = 6;
+  const HEX_MAX_LAYERS = 6;
+  const HEX_CORE = 0.22;
+  const HEX_LAYER = (0.98 - HEX_CORE) / HEX_MAX_LAYERS;
+  const HEX_BLOCK = HEX_LAYER * 0.9;
+  const HEX_HALF_SECTOR = Math.PI / 6 - 0.025;
+  const HEX_COLORS = ['#00f0ff', '#ff3ea5', '#3dffa0', '#ffd166', '#b65cff'];
+  const HEX_LEVELS = {
+    easy: { colors: 3, fall: 0.16, maxMul: 1.8, spawn: 1700, spawnMin: 1100, ramp: 18 },
+    normal: { colors: 4, fall: 0.22, maxMul: 2.2, spawn: 1300, spawnMin: 800, ramp: 22 },
+    hard: { colors: 5, fall: 0.3, maxMul: 2.6, spawn: 1000, spawnMin: 550, ramp: 26 },
+  };
+  const HEX_KEYS = { ArrowLeft: -1, KeyA: -1, ArrowRight: 1, KeyD: 1 };
+
+  const laneAngle = (k) => -Math.PI / 2 + k * (Math.PI / 3);
+
+  function drawSector(ctx, cx, cy, angle, rIn, rOut, color) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, rOut, angle - HEX_HALF_SECTOR, angle + HEX_HALF_SECTOR);
+    ctx.arc(cx, cy, rIn, angle + HEX_HALF_SECTOR, angle - HEX_HALF_SECTOR, true);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+
+  // Returns the set of "ring-index-depth" keys for every block that is part of a run of 3+ matching colors.
+  function findHexMatches(stacks) {
+    const marks = new Set();
+    const depth = Math.max(0, ...stacks.map((column) => column.length));
+    for (let d = 0; d < depth; d += 1) {
+      const colors = stacks.map((column) => column[d] ?? null);
+      if (colors.every((c) => c !== null && c === colors[0])) {
+        colors.forEach((_, i) => marks.add(`${i}-${d}`));
+        continue;
+      }
+      const start = colors.findIndex((color, i) => color !== colors[mod(i - 1, HEX_LANES)]);
+      if (start === -1) continue;
+      let run = [];
+      const flush = () => {
+        if (run.length >= 3) run.forEach((i) => marks.add(`${i}-${d}`));
+        run = [];
+      };
+      for (let k = 0; k < HEX_LANES; k += 1) {
+        const i = (start + k) % HEX_LANES;
+        const color = colors[i];
+        if (color === null) {
+          flush();
+          continue;
+        }
+        if (run.length && colors[run[run.length - 1]] !== color) flush();
+        run.push(i);
+      }
+      flush();
+    }
+    return marks;
+  }
+
+  function createHextrisGame(screen, signal) {
+    const canvas = screen.querySelector('[data-canvas]');
+    const ctx = canvas.getContext('2d');
+    const stageEl = screen.querySelector('[data-stage]');
+    const scoreEl = screen.querySelector('[data-score]');
+    const bestEl = screen.querySelector('[data-best]');
+    const overlay = createOverlay(screen, 'hextris', signal);
+    let best = loadBest('hextris');
+    let level = HEX_LEVELS.normal;
+    let phase = 'idle';
+    let size = { width: 0, height: 0 };
+    let stacks = [];
+    let flying = [];
+    let rot = 0;
+    let rotAngle = 0;
+    let spawnIn = 0;
+    let score = 0;
+    let cleared = 0;
+    let gesture = null;
+
+    function updateHud() {
+      scoreEl.textContent = String(score);
+      bestEl.textContent = String(Math.max(best, score));
+    }
+
+    function resetState() {
+      stacks = Array.from({ length: HEX_LANES }, () => []);
+      flying = [];
+      rot = 0;
+      rotAngle = 0;
+      spawnIn = 800;
+      score = 0;
+      cleared = 0;
+      updateHud();
+    }
+
+    const fallSpeed = () => level.fall * Math.min(level.maxMul, 1 + cleared * 0.02);
+
+    function endGame() {
+      phase = 'over';
+      const newBest = score > best;
+      if (newBest) {
+        best = score;
+        saveBest('hextris', best);
+      }
+      updateHud();
+      overlay.show({
+        title: 'Core overloaded',
+        text: `Final score: ${score}${newBest ? ' - New best!' : ''}`,
+        primaryLabel: 'Play again',
+        showDifficulty: true,
+        action: () => beginGame(overlay.difficulty()),
+      });
+    }
+
+    function resolveMatches() {
+      let marks = findHexMatches(stacks);
+      let chain = 0;
+      while (marks.size > 0) {
+        chain += 1;
+        cleared += marks.size;
+        score += marks.size * 10 * chain;
+        stacks = stacks.map((column, i) => column.filter((_, depth) => !marks.has(`${i}-${depth}`)));
+        marks = findHexMatches(stacks);
+      }
+      if (chain > 0) updateHud();
+    }
+
+    function rotate(step) {
+      if (phase === 'playing') rot += step;
+    }
+
+    function update(dt) {
+      rotAngle += (rot * (Math.PI / 3) - rotAngle) * Math.min(1, dt * 12);
+      if (phase === 'playing') {
+        spawnIn -= dt * 1000;
+        if (spawnIn <= 0) {
+          spawnIn = Math.max(level.spawnMin, level.spawn - cleared * level.ramp);
+          flying.push({ lane: randomInt(HEX_LANES), color: randomInt(level.colors), r: 0.98 - HEX_BLOCK });
+        }
+        const travel = fallSpeed() * dt;
+        let landed = false;
+        const remaining = [];
+        for (const block of flying) {
+          block.r -= travel;
+          const index = mod(block.lane - rot, HEX_LANES);
+          const target = HEX_CORE + stacks[index].length * HEX_LAYER;
+          if (block.r > target) {
+            remaining.push(block);
+            continue;
+          }
+          if (stacks[index].length >= HEX_MAX_LAYERS) {
+            endGame();
+            return;
+          }
+          stacks[index].push(block.color);
+          landed = true;
+        }
+        flying = remaining;
+        if (landed) resolveMatches();
+      }
+      render();
+    }
+
+    function render() {
+      const { width: W, height: H } = size;
+      if (!W) return;
+      const cx = W / 2;
+      const cy = H / 2;
+      const R = (Math.min(W, H) / 2) * 0.92;
+
+      ctx.clearRect(0, 0, W, H);
+      const bg = ctx.createRadialGradient(cx, cy, R * 0.1, cx, cy, R * 1.05);
+      bg.addColorStop(0, '#14142e');
+      bg.addColorStop(1, '#070710');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+
+      for (let k = 0; k < HEX_LANES; k += 1) {
+        const active = flying.some((b) => b.lane === k);
+        drawSector(ctx, cx, cy, laneAngle(k), HEX_CORE * R, R, active ? 'rgba(0, 240, 255, 0.14)' : 'rgba(255, 255, 255, 0.04)');
+        ctx.fillStyle = active ? '#00f0ff' : 'rgba(255, 255, 255, 0.35)';
+        ctx.beginPath();
+        ctx.arc(cx + Math.cos(laneAngle(k)) * R * 1.04, cy + Math.sin(laneAngle(k)) * R * 1.04, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      stacks.forEach((column, i) => {
+        const angle = laneAngle(i) + rotAngle;
+        column.forEach((color, depth) => {
+          const inner = (HEX_CORE + depth * HEX_LAYER) * R;
+          drawSector(ctx, cx, cy, angle, inner, inner + HEX_BLOCK * R, HEX_COLORS[color]);
+        });
+      });
+
+      flying.forEach((block) => {
+        drawSector(ctx, cx, cy, laneAngle(block.lane), block.r * R, (block.r + HEX_BLOCK) * R, HEX_COLORS[block.color]);
+      });
+
+      const coreR = HEX_CORE * R;
+      ctx.beginPath();
+      for (let k = 0; k < 6; k += 1) {
+        const a = laneAngle(0) + rotAngle + k * (Math.PI / 3);
+        const x = cx + Math.cos(a) * coreR;
+        const y = cy + Math.sin(a) * coreR;
+        if (k === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fillStyle = '#0d0d24';
+      ctx.fill();
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    function resize() {
+      size = fitCanvas(canvas, ctx);
+      render();
+    }
+
+    function beginGame(difficulty) {
+      level = HEX_LEVELS[difficulty];
+      resetState();
+      phase = 'playing';
+      overlay.hide();
+    }
+
+    function promptStart() {
+      level = HEX_LEVELS[overlay.difficulty()];
+      resetState();
+      phase = 'idle';
+      overlay.show({
+        title: 'Hextris',
+        text: 'Line up three or more matching colors in a row to clear them.',
+        primaryLabel: 'Start',
+        showDifficulty: true,
+        action: () => beginGame(overlay.difficulty()),
+      });
+    }
+
+    function pause() {
+      if (phase !== 'playing') return;
+      phase = 'paused';
+      overlay.show({ title: 'Paused', primaryLabel: 'Resume', showDifficulty: false, action: resume });
+    }
+
+    function resume() {
+      if (phase !== 'paused') return;
+      phase = 'playing';
+      overlay.hide();
+    }
+
+    function togglePause() {
+      if (phase === 'playing') pause();
+      else resume();
+    }
+
+    window.addEventListener('keydown', (event) => {
+      if (isTypingTarget(event.target)) return;
+      if (event.code === 'KeyP') {
+        togglePause();
+        return;
+      }
+      const step = HEX_KEYS[event.code];
+      if (step === undefined) return;
+      event.preventDefault();
+      rotate(step);
+    }, { signal });
+
+    stageEl.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      gesture = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
+    }, { signal });
+    stageEl.addEventListener('pointermove', (event) => {
+      if (!gesture || gesture.id !== event.pointerId || gesture.moved) return;
+      const dx = event.clientX - gesture.x;
+      const dy = event.clientY - gesture.y;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_MIN) return;
+      gesture.moved = true;
+      if (Math.abs(dx) > Math.abs(dy)) rotate(dx < 0 ? -1 : 1);
+    }, { signal });
+    stageEl.addEventListener('pointerup', (event) => {
+      if (!gesture || gesture.id !== event.pointerId) return;
+      if (!gesture.moved) {
+        const rect = canvas.getBoundingClientRect();
+        rotate(event.clientX < rect.left + rect.width / 2 ? -1 : 1);
+      }
+      gesture = null;
+    }, { signal });
+    stageEl.addEventListener('pointercancel', () => { gesture = null; }, { signal });
+
+    screen.querySelectorAll('[data-rotate]').forEach((button) => {
+      button.addEventListener('pointerdown', (event) => {
+        event.preventDefault();
+        rotate(Number(button.dataset.rotate));
+      }, { signal });
+    });
+
+    screen.querySelector('[data-pause]').addEventListener('click', togglePause, { signal });
+    screen.querySelector('[data-restart]').addEventListener('click', promptStart, { signal });
+    window.addEventListener('resize', resize, { signal });
+
+    promptStart();
+    resize();
+    runFrameLoop(update, signal);
+  }
+
+  /* ---------- App shell: views, navigation, filters ---------- */
+
+  const GAME_FACTORIES = {
+    snake: createSnakeGame,
+    mole: createMoleGame,
+    cube: createCubeGame,
+    hextris: createHextrisGame,
+  };
+  const SCROLL_TARGETS = { games: 'games', about: 'about' };
+  const viewEls = {
+    home: document.getElementById('view-home'),
+    developer: document.getElementById('view-developer'),
+    game: document.getElementById('view-game'),
+  };
+  const footer = document.querySelector('[data-footer]');
+  const searchInput = document.getElementById('game-search');
+  const filterChips = Array.from(document.querySelectorAll('[data-filter]'));
+  const gameCards = Array.from(document.querySelectorAll('.game-card'));
+  const emptyState = document.getElementById('empty-state');
+
+  let session = null;
+  let lastScrollY = 0;
+  let activeFilter = 'all';
+
+  function closeGame() {
+    if (!session) return;
+    session.controller.abort();
+    session.screen.hidden = true;
+    session = null;
+  }
+
+  function showView(name) {
+    closeGame();
+    Object.entries(viewEls).forEach(([key, el]) => {
+      el.hidden = key !== name;
+    });
+    footer.hidden = name === 'game';
+    document.querySelectorAll('.nav-btn').forEach((btn) => {
+      btn.classList.toggle('is-active', btn.dataset.nav === name);
+    });
+    window.scrollTo(0, 0);
+  }
+
+  function navigate(target) {
+    const sectionId = SCROLL_TARGETS[target];
+    if (sectionId) {
+      showView('home');
+      document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    showView(target);
+  }
+
+  function openGame(gameId) {
+    const screen = document.querySelector(`[data-game-screen="${gameId}"]`);
+    lastScrollY = window.scrollY;
+    showView('game');
+    screen.hidden = false;
+    const controller = new AbortController();
+    session = { controller, screen };
+    GAME_FACTORIES[gameId](screen, controller.signal);
+  }
+
+  function applyFilters() {
+    const query = searchInput.value.trim().toLowerCase();
+    let visible = 0;
+    gameCards.forEach((card) => {
+      const matchesCategory = activeFilter === 'all' || card.dataset.category === activeFilter;
+      const matchesQuery = !query || card.textContent.toLowerCase().includes(query);
+      card.hidden = !(matchesCategory && matchesQuery);
+      if (!card.hidden) visible += 1;
+    });
+    emptyState.hidden = visible > 0;
+  }
+
+  document.addEventListener('click', (event) => {
+    const target = event.target.closest('[data-nav], [data-play], [data-back]');
+    if (!target) return;
+    if (target.dataset.play) {
+      openGame(target.dataset.play);
+    } else if (target.hasAttribute('data-back')) {
+      showView('home');
+      window.scrollTo(0, lastScrollY);
+    } else {
+      navigate(target.dataset.nav);
+    }
+  });
+
+  searchInput.addEventListener('input', applyFilters);
+  filterChips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      activeFilter = chip.dataset.filter;
+      filterChips.forEach((other) => {
+        const on = other === chip;
+        other.classList.toggle('is-active', on);
+        other.setAttribute('aria-pressed', String(on));
+      });
+      applyFilters();
+    });
+  });
+
+  document.querySelectorAll('[data-game-screen]').forEach((screen) => {
+    screen.querySelector('[data-stage]').insertAdjacentHTML('beforeend', OVERLAY_TEMPLATE);
+  });
+
+  showView('home');
+})();
+</script>
+</body>
+</html>
