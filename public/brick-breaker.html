@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Neon Brick Breaker | GameZone</title>
+  <style>
+    :root {
+      --bg-0: #05050d;
+      --bg-1: #0b0b1a;
+      --panel: rgba(16, 16, 36, 0.85);
+      --line: rgba(0, 240, 255, 0.25);
+      --text: #eef6ff;
+      --muted: #aab6cc;
+      --cyan: #00f0ff;
+      --pink: #ff2a85;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+    body {
+      background: radial-gradient(circle at top, #13132b 0%, var(--bg-0) 70%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+    .topbar {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .back-btn {
+      color: var(--text);
+      text-decoration: none;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 8px 14px;
+      border-radius: 99px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .title {
+      font-size: 18px;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--cyan), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hud {
+      width: 100%;
+      max-width: 440px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .stat span { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; }
+    .stat strong { font-size: 20px; color: var(--cyan); }
+    .btn {
+      background: linear-gradient(135deg, var(--cyan), #0099ff);
+      color: #05050d;
+      border: none;
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .btn.secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+    .stage {
+      position: relative;
+      width: 100%;
+      max-width: 440px;
+      aspect-ratio: 1 / 1.15;
+      background: var(--bg-1);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.1);
+      touch-action: none;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(5, 5, 13, 0.86);
+      backdrop-filter: blur(6px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 24px;
+    }
+    .overlay.hidden { display: none; }
+    .overlay h2 { font-size: 26px; margin-bottom: 8px; color: var(--cyan); }
+    .overlay p { color: var(--muted); font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+    .diff-row { display: flex; gap: 8px; margin-bottom: 20px; }
+    .diff-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .diff-btn.active { background: var(--pink); border-color: var(--pink); font-weight: 700; }
+    .hint { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="./" class="back-btn">&larr; GameZone</a>
+    <div class="title">NEON BREAKER</div>
+  </div>
+
+  <div class="hud">
+    <div class="stat"><span>Score</span><strong id="score">0</strong></div>
+    <div class="stat"><span>Best</span><strong id="best">0</strong></div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn secondary" id="pauseBtn">Pause</button>
+      <button class="btn secondary" id="restartBtn">Restart</button>
+    </div>
+  </div>
+
+  <div class="stage" id="stage">
+    <canvas id="gameCanvas"></canvas>
+    <div class="overlay" id="overlay">
+      <h2 id="ovTitle">Neon Brick Breaker</h2>
+      <p id="ovText">Slide your finger across the screen to bounce the energy ball and destroy all bricks.</p>
+      <div class="diff-row" id="diffRow">
+        <button class="diff-btn" data-diff="easy">Easy</button>
+        <button class="diff-btn active" data-diff="normal">Normal</button>
+        <button class="diff-btn" data-diff="hard">Hard</button>
+      </div>
+      <button class="btn" id="startBtn" style="padding: 12px 32px; font-size: 16px;">Start Game</button>
+    </div>
+  </div>
+
+  <p class="hint">Drag anywhere on the board to move the neon paddle.</p>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const bestEl = document.getElementById('best');
+    const overlay = document.getElementById('overlay');
+    const ovTitle = document.getElementById('ovTitle');
+    const ovText = document.getElementById('ovText');
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const restartBtn = document.getElementById('restartBtn');
+
+    let difficulty = 'normal';
+    const SPEEDS = { easy: 260, normal: 340, hard: 430 };
+    const PADDLE_W = { easy: 110, normal: 88, hard: 68 };
+    const COLORS = ['#00f0ff', '#ff2a85', '#a855f7', '#38bdf8', '#f472b6'];
+
+    let best = Number(localStorage.getItem('gz_breaker_best') || 0);
+    bestEl.textContent = best;
+
+    document.querySelectorAll('.diff-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        difficulty = btn.dataset.diff;
+      });
+    });
+
+    let W = 360, H = 414;
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = canvas.clientWidth;
+      H = canvas.clientHeight;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    let state = 'idle', score = 0, wave = 1;
+    let paddle = { x: 130, y: 380, w: 88, h: 12 };
+    let ball = { x: 180, y: 360, vx: 200, vy: -260, r: 7 };
+    let bricks = [];
+
+    function buildBricks() {
+      bricks = [];
+      const rows = Math.min(4 + Math.floor(wave / 2), 6);
+      const cols = 6, pad = 8, top = 36;
+      const bw = (W - pad * (cols + 1)) / cols, bh = 16;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          bricks.push({ x: pad + c * (bw + pad), y: top + r * (bh + pad), w: bw, h: bh, color: COLORS[r % COLORS.length], alive: true });
+        }
+      }
+    }
+
+    function resetPositions() {
+      paddle.w = PADDLE_W[difficulty];
+      paddle.x = (W - paddle.w) / 2;
+      paddle.y = H - 24;
+      const spd = SPEEDS[difficulty] + (wave - 1) * 20;
+      const ang = (Math.random() * 0.6 - 0.3);
+      ball.x = W / 2;
+      ball.y = paddle.y - 14;
+      ball.vx = Math.sin(ang) * spd;
+      ball.vy = -Math.cos(ang) * spd;
+    }
+
+    function startGame() {
+      resize();
+      score = 0; wave = 1;
+      scoreEl.textContent = '0';
+      pauseBtn.textContent = 'Pause';
+      buildBricks();
+      resetPositions();
+      state = 'playing';
+      overlay.classList.add('hidden');
+    }
+
+    function movePaddle(clientX) {
+      const rect = canvas.getBoundingClientRect();
+      const x = clientX - rect.left;
+      paddle.x = Math.max(4, Math.min(W - paddle.w - 4, x - paddle.w / 2));
+    }
+
+    canvas.addEventListener('pointermove', e => { if (state === 'playing') movePaddle(e.clientX); });
+    canvas.addEventListener('pointerdown', e => { if (state === 'playing') movePaddle(e.clientX); });
+
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', startGame);
+    pauseBtn.addEventListener('click', () => {
+      if (state === 'playing') {
+        state = 'paused';
+        pauseBtn.textContent = 'Resume';
+        ovTitle.textContent = 'Paused';
+        ovText.textContent = 'Game is paused.';
+        startBtn.textContent = 'Resume';
+        document.getElementById('diffRow').style.display = 'none';
+        overlay.classList.remove('hidden');
+        startBtn.onclick = () => {
+          state = 'playing';
+          pauseBtn.textContent = 'Pause';
+          overlay.classList.add('hidden');
+          startBtn.onclick = startGame;
+        };
+      }
+    });
+
+    let last = 0;
+    function loop(now) {
+      const dt = last ? Math.min((now - last) / 1000, 0.05) : 0;
+      last = now;
+      ctx.clearRect(0, 0, W, H);
+
+      if (state === 'playing') {
+        ball.x += ball.vx * dt;
+        ball.y += ball.vy * dt;
+
+        if (ball.x - ball.r < 0) { ball.x = ball.r; ball.vx = Math.abs(ball.vx); }
+        if (ball.x + ball.r > W) { ball.x = W - ball.r; ball.vx = -Math.abs(ball.vx); }
+        if (ball.y - ball.r < 0) { ball.y = ball.r; ball.vy = Math.abs(ball.vy); }
+
+        if (ball.vy > 0 && ball.y + ball.r >= paddle.y && ball.y - ball.r <= paddle.y + paddle.h && ball.x >= paddle.x - 4 && ball.x <= paddle.x + paddle.w + 4) {
+          const hit = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
+          const spd = Math.hypot(ball.vx, ball.vy);
+          const ang = hit * (Math.PI / 3);
+          ball.vx = Math.sin(ang) * spd;
+          ball.vy = -Math.abs(Math.cos(ang) * spd);
+          ball.y = paddle.y - ball.r;
+        }
+
+        let left = 0;
+        for (const b of bricks) {
+          if (!b.alive) continue;
+          left++;
