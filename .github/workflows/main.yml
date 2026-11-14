@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Build
-        run: npm run build -- --base=/Gar/
+        run: npm run build -- --base=./
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
